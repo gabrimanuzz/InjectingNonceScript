@@ -37,14 +37,14 @@ from typing import List, Tuple, Dict, Optional
 
 # ── Configuration ─────────────────────────────────────────────────────────────
 
-PROJECT_DIR: str = "C:/Users/gmanuzzato/Desktop/evaluation - Copia"
+PROJECT_DIR: str = "C:/Users/gmanuzzato/Desktop/EV_FINAL_2/evaluation"
 VALID_EXTENSIONS: Tuple[str, ...] = (".html", ".jsp", ".php", ".ftl", ".tmpl")
 
-ENABLE_BACKUP: bool = True
+ENABLE_BACKUP: bool = False
 DRY_RUN: bool = False
 
 # Path where the risk report will be written
-REPORT_PATH: str = "./csp_risk_report_3.json"
+REPORT_PATH: str = "./csp_risk_report_final.json"
 
 # ── Dispatcher Script ─────────────────────────────────────────────────────────
 
