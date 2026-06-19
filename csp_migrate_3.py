@@ -49,43 +49,65 @@ REPORT_PATH: str = "./csp_risk_report_final.json"
 # ── Dispatcher Script ─────────────────────────────────────────────────────────
 
 SCRIPT_DISPATCHER: str = """\
-<script nonce="${cspNonce}">
-(function () {
-    var EVENTS = [
-        'click', 'blur', 'focus', 'change', 'submit',
-        'mouseover', 'mouseout', 'keydown', 'keyup', 'input'
-    ];
-    EVENTS.forEach(function (type) {
-        document.addEventListener(type, function (e) {
-            var attr = 'data-on' + type;
-            var target = e.target && e.target.closest('[' + attr + ']');
-            if (!target) return;
+if (!window.__cspDispatcherLoaded) {
+    window.__cspDispatcherLoaded = true;
 
-            var value = target.getAttribute(attr);
-            if (!value) return;
-
-            var match = value.match(/^(\\w+)(?:\\(([^)]*)\\))?$/);
-            if (!match) return;
-
-            var funcName = match[1];
-            var func = window[funcName];
-            if (typeof func !== 'function') {
-                console.warn('[CSP dispatcher] function not found:', funcName);
-                return;
+    (function () {
+        function findClosest(el, selector) {
+            if (!el) return null;
+            if (typeof el.closest === 'function') {
+                try { return el.closest(selector); } catch (err) { /* fall through */ }
             }
+            var node = el;
+            while (node && node.nodeType === 1) {
+                if (typeof node.matches === 'function') {
+                    if (node.matches(selector)) return node;
+                } else if (typeof node.getAttribute === 'function') {
+                    var attrName = selector.replace(/^\\[|\\]$/g, '');
+                    if (node.getAttribute(attrName) !== null) return node;
+                }
+                node = node.parentNode;
+            }
+            return null;
+        }
 
-            var args = match[2]
-                ? match[2].split(',').map(function (a) {
-                      a = a.trim().replace(/^['"]|['"]$/g, '');
-                      return isNaN(a) ? a : Number(a);
-                  })
-                : [e];
+        var EVENTS = [
+            'click', 'blur', 'focus', 'change', 'submit',
+            'mouseover', 'mouseout', 'keydown', 'keyup', 'input'
+        ];
+        EVENTS.forEach(function (type) {
+            document.addEventListener(type, function (e) {
+                var attr = 'data-on' + type;
+                var rawTarget = e && e.target;
+                if (!rawTarget) return;
+                var target = findClosest(rawTarget, '[' + attr + ']');
+                if (!target) return;
 
-            func.apply(target, args);
-        }, true);
-    });
-})();
-</script>"""
+                var value = target.getAttribute(attr);
+                if (!value) return;
+
+                var match = value.match(/^(\\w+)(?:\\(([^)]*)\\))?$/);
+                if (!match) return;
+
+                var funcName = match[1];
+                var func = window[funcName];
+                if (typeof func !== 'function') {
+                    console.warn('[CSP dispatcher] function not found:', funcName);
+                    return;
+                }
+
+                var args = match[2]
+                    ? match[2].split(',').map(function (a) {
+                          a = a.trim().replace(/^['"]|['"]$/g, '');
+                          return isNaN(a) ? a : Number(a);
+                      })
+                    : [e];
+
+                func.apply(target, args);
+            }, true);
+        });
+    })();
+}"""
 
 # ── Nonce placeholders per extension ─────────────────────────────────────────
 
